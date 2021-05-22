@@ -40,5 +40,4 @@ class MCDropout(CEBaseline):
             samples.append(self(x).cpu())
 
         variance = torch.stack(samples, 1).var(1).mean(1)
-        dir_uncert = {"Variance": variance}
-        return dir_uncert
+        return {"Variance": variance}
