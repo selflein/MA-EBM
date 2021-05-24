@@ -24,16 +24,15 @@ model_config:
     num_classes: ${fixed.num_classes}
     widen_factor: 4
     input_channels: ${fixed.data_shape.2}
-    dropout: 0.3
+    dropout: 0.0
     norm: group
 
-  learning_rate: 0.00003
+  learning_rate: 0.0001
   beta1: 0.0
   beta2: 0.9
-  weight_decay: 0.1
+  weight_decay: 0.0
   n_classes: 10
-  uncond: False
-  gen_learning_rate: 0.00006
+  gen_learning_rate: 0.0001
   ebm_iters: 1
   generator_iters: 1
   entropy_weight: 0.0001
@@ -54,10 +53,10 @@ model_config:
   max_sigma: 0.3
   p_control: 1.0
   n_control: 1.0
-  pg_control: 1.0
-  clf_ent_weight: 0.1
+  pg_control: 0.1
+  clf_ent_weight: 0.0
   ebm_type: jem
-  clf_weight: 100.0
+  clf_weight: 1.0
   warmup_steps: 2500
   no_g_batch_norm: False
   batch_size: 32
@@ -67,6 +66,6 @@ model_config:
   alpha_fix: True
   concentration: 1.0
   target_concentration:
-  entropy_reg: 0.0001
+  entropy_reg: 0.0
   reverse_kl: True
   w_neg_sample_loss: 0.0

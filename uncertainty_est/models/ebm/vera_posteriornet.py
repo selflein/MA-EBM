@@ -96,9 +96,6 @@ class VERAPosteriorNet(VERA):
         )
         UCE_loss = UCE_loss + self.clf_ent_weight * -Dirichlet(alpha).entropy().mean()
 
-        import pdb
-
-        pdb.set_trace()
         lg_alpha = torch.exp(lg_logits)
         if self.alpha_fix:
             lg_alpha = lg_alpha + 1

@@ -15,7 +15,7 @@ earlystop_config:
   patience: 10
 
 ood_dataset: ${fixed.dataset}
-sigma: 0.1
+sigma: 0.01
 
 model_name: VERAPosteriorNet
 model_config:
@@ -58,12 +58,13 @@ model_config:
   pg_control: 0.1
   clf_ent_weight: 0.1
   ebm_type: jem
-  clf_weight: 100.0
+  clf_weight: 1.0
   warmup_steps: 2500
   no_g_batch_norm: False
   batch_size: ${fixed.batch_size}
-  lr_decay: 0.3
+  lr_decay: 1.
   lr_decay_epochs: [30, 35]
   vis_every: -1
   alpha_fix: True
-  entropy_reg: 0.0001
+  entropy_reg: 0.0
+  sample_term: 0.0
