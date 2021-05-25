@@ -3,7 +3,6 @@ import torch.nn.functional as F
 from torch.distributions import Dirichlet
 
 from uncertainty_est.models.ebm.vera import VERA
-from uncertainty_est.models.priornet.dpn_losses import dirichlet_kl_divergence
 from uncertainty_est.models.priornet.uncertainties import (
     dirichlet_prior_network_uncertainty,
 )
@@ -42,6 +41,7 @@ class VERAPosteriorNet(VERA):
         lr_decay_epochs,
         alpha_fix=True,
         entropy_reg=0.0,
+        sample_term=0.0,
         **kwargs,
     ):
         if n_control is None:
@@ -76,7 +76,6 @@ class VERAPosteriorNet(VERA):
             batch_size,
             lr_decay,
             lr_decay_epochs,
-            sample_term=0.0,
             **kwargs,
         )
         self.__dict__.update(locals())
