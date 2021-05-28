@@ -1,0 +1,13 @@
+# @package _group_
+
+model_config.clf_weight:
+  type: loguniform
+  min: 0.01
+  max: 100
+  num: 5
+
+model_config.p_control:
+  type: loguniform
+  min: 0.001
+  max: 1
+  num: 4

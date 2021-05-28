@@ -40,7 +40,6 @@ class VERAPosteriorNet(VERA):
         lr_decay,
         lr_decay_epochs,
         alpha_fix=True,
-        entropy_reg=0.0,
         sample_term=0.0,
         **kwargs,
     ):

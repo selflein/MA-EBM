@@ -25,5 +25,6 @@ model_config:
   clf_weight: 0.0
   n_classes: 1
   n_particles: 1
+  noise_type: radermacher
   warmup_steps: 2500
   lr_step_size: 1000

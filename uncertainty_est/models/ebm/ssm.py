@@ -2,7 +2,6 @@ import torch
 from torch import autograd
 import torch.nn.functional as F
 
-from uncertainty_est.utils.utils import to_np
 from uncertainty_est.models.ebm.utils.model import JEM
 from uncertainty_est.archs.arch_factory import get_arch
 from uncertainty_est.models.ood_detection_model import OODDetectionModel

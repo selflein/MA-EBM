@@ -29,8 +29,8 @@ fixed:
 
 defaults:
   - hydra/job_logging: stdout
-  - model: fc_mcmc_supervised
   - dataset: segment
-  - model/updates: ${defaults.0.model}_${defaults.1.dataset}
+  - model: fc_mcmc_supervised
+  - model/updates: ${defaults.1.model}_${defaults.0.dataset}
     optional: True
   - grid: seed
