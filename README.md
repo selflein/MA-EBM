@@ -1,4 +1,4 @@
-# Uncertainty Estimation in Deep Neural Networks
+# Out-of-distribution (OOD) detection with Energy-based Models
 
 ### Train CIFAR 10 Baseline (on local GPU)
 ```
