@@ -71,6 +71,7 @@ class AffineCouplingModel(OODDetectionModel):
     def get_ood_scores(self, x):
         log_p_xy = self(x)
         log_p_x = torch.logsumexp(log_p_xy, dim=1)
+        log_p_x[log_p_x.isnan()] = torch.finfo().min
         return {"p(x)": log_p_x}
 
 

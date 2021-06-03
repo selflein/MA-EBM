@@ -3,8 +3,6 @@
 trainer_config:
   max_epochs: 50
 
-checkpoint_config:
-
 earlystop_config:
 
 ood_dataset: ${fixed.dataset}
@@ -26,5 +24,6 @@ model_config:
   clf_weight: 1.0
   n_classes: ${fixed.num_classes}
   n_particles: 1
+  noise_type: gaussian
   warmup_steps: 2500
   lr_step_size: 1000

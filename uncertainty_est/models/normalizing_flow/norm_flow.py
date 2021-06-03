@@ -53,4 +53,6 @@ class NormalizingFlow(OODDetectionModel):
         return optim
 
     def get_ood_scores(self, x):
-        return {"p(x)": self.density_estimation.log_prob(x)}
+        p_x = self.density_estimation.log_prob(x).cpu().detach()
+        p_x[p_x.isnan()] = torch.finfo().min
+        return {"p(x)": p_x}
