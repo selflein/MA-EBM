@@ -143,7 +143,7 @@ class VERA(OODDetectionModel):
 
         if self.pg_control > 0:
             grad_ld = (
-                torch.autograd.grad(ld.mean(), x_l, create_graph=True)[0]
+                torch.autograd.grad(ld.sum(), x_l, create_graph=True)[0]
                 .flatten(start_dim=1)
                 .norm(2, 1)
             )

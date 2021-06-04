@@ -67,6 +67,16 @@ def split_leading_dim(x, shape):
     return torch.reshape(x, new_shape)
 
 
+def inverse_normalize(tensor, mean, std, inplace=False):
+    for t, m, s in zip(tensor, mean, std):
+        if inplace:
+            t.mul_(s).add_(m)
+        else:
+            tensor = tensor.mul(s).add(m)
+
+    return tensor
+
+
 if __name__ == "__main__":
     dims = 2
     samples = 100
