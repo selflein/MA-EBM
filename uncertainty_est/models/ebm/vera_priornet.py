@@ -1,4 +1,5 @@
 import torch
+from torch.distributions import Dirichlet
 
 from uncertainty_est.models.ebm.vera import VERA
 from uncertainty_est.models.priornet.dpn_losses import UnfixedDirichletKLLoss
@@ -43,7 +44,8 @@ class VERAPriorNet(VERA):
         target_concentration=None,
         entropy_reg=0.0,
         reverse_kl=True,
-        w_neg_sample_loss=1.0,
+        w_neg_sample_loss=0.0,
+        w_neg_entropy_loss=0.0,
         **kwargs,
     ):
         super().__init__(
@@ -86,12 +88,24 @@ class VERAPriorNet(VERA):
 
     def classifier_loss(self, ld_logits, y_l, lg_logits):
         loss = self.clf_loss(ld_logits, y_l)
+        self.log("train/clf_loss", loss)
 
         loss_ood = 0.0
         if self.w_neg_sample_loss > 0:
             loss_ood = self.w_neg_sample_loss * self.clf_loss(lg_logits)
-        self.log("train/clf_loss", loss + loss_ood)
-        return loss
+            self.log("train/w_neg_sample_loss", loss_ood)
+
+        loss_ood_ent = 0.0
+        if self.w_neg_entropy_loss > 0:
+            lg_alphas = torch.exp(lg_logits)
+            if self.alpha_fix:
+                lg_alphas = lg_alphas + 1
+            loss_ood_ent = (
+                self.w_neg_entropy_loss * -Dirichlet(lg_alphas).entropy().mean()
+            )
+            self.log("train/w_neg_entropy_loss", loss_ood_ent)
+
+        return loss + loss_ood_ent + loss_ood
 
     def validation_epoch_end(self, outputs):
         super().validation_epoch_end(outputs)

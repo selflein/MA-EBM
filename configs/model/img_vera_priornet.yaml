@@ -52,7 +52,7 @@ model_config:
   min_sigma: 0.01
   max_sigma: 0.3
   p_control: 1.0
-  n_control: 0.0
+  n_control: 1.0
   pg_control: 0.1
   clf_ent_weight: 0.0
   ebm_type: jem
@@ -69,3 +69,4 @@ model_config:
   entropy_reg: 0.0
   reverse_kl: True
   w_neg_sample_loss: 0.0
+  w_neg_entropy_loss: 0.0
