@@ -1,0 +1,67 @@
+# @package fixed
+
+checkpoint_config:
+  save_last: True
+
+earlystop_config:
+
+ood_dataset: ${fixed.dataset}
+
+model_name: VERAPriorNet
+model_config:
+  arch_name: fc
+  arch_config:
+    inp_dim: ${fixed.data_shape.0}
+    num_classes: ${fixed.num_classes}
+    hidden_dims: [100, 100, 100, 100, 100]
+    batch_norm: False
+    bias: True
+    slope: 0.2
+
+  learning_rate: 0.0001
+  beta1: 0.0
+  beta2: 0.9
+  weight_decay: 0.0
+  n_classes: ${fixed.num_classes}
+  uncond: False
+  gen_learning_rate: 0.001
+  ebm_iters: 1
+  generator_iters: 1
+  entropy_weight: 1.0
+
+  generator_type: vera
+  generator_arch_name: fc
+  generator_arch_config:
+    inp_dim: ${fixed.data_shape.0}
+    num_classes: ${fixed.data_shape.0}
+    hidden_dims: [100, 100, 100, 100, 100]
+    activation: relu
+    batch_norm: True
+    bias: False
+  generator_config:
+    noise_dim: ${fixed.data_shape.0}
+    post_lr: 0.00003
+    init_post_logsigma: 0.1
+
+  min_sigma: 0.01
+  max_sigma: 0.3
+  p_control: 1.0
+  n_control: 1.0
+  pg_control: 0.1
+  clf_ent_weight: 0.1
+  ebm_type: jem
+  clf_weight: 1.0
+  warmup_steps: 2500
+  no_g_batch_norm: False
+  batch_size: 128
+  lr_decay: 0.3
+  lr_decay_epochs: [200, 300]
+  alpha_fix: True
+  concentration: 1.0
+  target_concentration:
+  vis_every: 10
+  entropy_reg: 0.0
+  is_toy_dataset: True
+  reverse_kl: True
+  w_neg_sample_loss: 0.0
+  w_neg_entropy_loss: 0.0

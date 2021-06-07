@@ -15,5 +15,8 @@ fixed:
   model_config:
     is_toy_dataset: True
 
+  trainer_config:
+    check_val_every_n_epoch: 100
+
   test_ood_datasets:
     - AnomalousGaussian2D

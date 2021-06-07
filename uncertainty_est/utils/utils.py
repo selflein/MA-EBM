@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from tqdm import tqdm
 from scipy.integrate import trapz
 
@@ -75,6 +76,46 @@ def inverse_normalize(tensor, mean, std, inplace=False):
             tensor = tensor.mul(s).add(m)
 
     return tensor
+
+
+def bold_maximum(to_bold, numeric_df=None):
+    if numeric_df is None:
+        numeric_df = to_bold
+    for k in to_bold.columns:
+        float_series = numeric_df[k].astype(float)
+        max = float_series == float_series.max()
+        max_idxs = max[max].index.values
+        for max_idx in max_idxs:
+            to_bold.loc[max_idx, k] = f"\\bfseries{{{to_bold.loc[max_idx, k]}}}"
+
+
+def pandas_to_latex(df_table, index=True, multicolumn=False, **kwargs) -> None:
+    latex = df_table.to_latex(multicolumn=multicolumn, index=index, **kwargs)
+
+    if multicolumn:
+        latex_lines = latex.splitlines()
+
+        insert_line_counter = 0
+        for j, level in enumerate(df_table.columns.levels[:-1]):
+            midrule_str = ""
+            codes = np.array(df_table.columns.codes[j])
+            indices = np.nonzero(codes[:-1] != codes[1:])[0]
+
+            if index:
+                indices += df_table.index.nlevels + 1
+                n_columns = len(codes) + df_table.index.nlevels
+
+            indices = (
+                np.array([df_table.index.nlevels] + indices.tolist() + [n_columns]) + 1
+            )
+            for start, end in zip(indices[:-1], indices[1:]):
+                midrule_str += f"\cmidrule(l){{{start}-{end - 1}}} "
+
+            latex_lines.insert(3 + insert_line_counter, midrule_str)
+            insert_line_counter += j + 2
+        latex = "\n".join(latex_lines)
+
+    return latex
 
 
 if __name__ == "__main__":

@@ -100,7 +100,7 @@ class MCMC(OODDetectionModel):
 
             fp = self.model(x_p_d)
             fq = self.model(x_q)
-            l_pxsgld = -(fp.mean() - fq.mean()) + (fp ** 2).mean() + (fq ** 2).mean()
+            l_pxsgld = -(fp.mean() - fq.mean())  # + (fp ** 2).mean() + (fq ** 2).mean()
             l_pxsgld *= self.pxsgld
 
         # log p(x|y) using sgld

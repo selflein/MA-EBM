@@ -6,6 +6,9 @@ trainer_config:
 
 earlystop_config:
 
+checkpoint_config:
+  save_last: True
+
 ood_dataset: ${fixed.dataset}
 
 model_name: JEM
