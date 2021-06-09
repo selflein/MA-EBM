@@ -1,5 +1,8 @@
 # @package fixed
 
+trainer_config:
+  max_epochs: 50
+
 checkpoint_config:
   monitor: val/acc
   mode: max
@@ -9,16 +12,15 @@ earlystop_config:
   mode: max
   patience: 10
 
-ood_dataset:
-
 model_name: MCDropout
 model_config:
-  arch_name: fc
+  arch_name: wrn
   arch_config:
-    inp_dim: ${fixed.data_shape.0}
+    depth: 10
     num_classes: ${fixed.num_classes}
-    hidden_dims: [100, 100, 100, 100, 100]
+    widen_factor: 2
+    input_channels: ${fixed.data_shape.2}
     dropout: 0.3
-  learning_rate: 0.001
+  learning_rate: 0.0001
   momentum: 0.9
   weight_decay: 0.0005

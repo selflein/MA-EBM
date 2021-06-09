@@ -40,4 +40,4 @@ class MCDropout(CEBaseline):
             samples.append(self(x).cpu())
 
         variance = torch.stack(samples, 1).var(1).mean(1)
-        return {"Variance": variance}
+        return {"Variance": -variance}

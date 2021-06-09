@@ -20,6 +20,7 @@ from .ebm.nce import NoiseContrastiveEstimation
 from .ebm.flow_contrastive_estimation import FlowContrastiveEstimation
 from .ebm.ssm import SSM
 from .autoencoder import Autoencoder
+from .mc_dropout import MCDropout
 
 
 MODELS = {
@@ -43,6 +44,7 @@ MODELS = {
     "FlowCE": FlowContrastiveEstimation,
     "SSM": SSM,
     "Autoencoder": Autoencoder,
+    "MCDropout": MCDropout,
 }
 
 
