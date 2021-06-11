@@ -1,8 +1,5 @@
 # @package fixed
 
-trainer_config:
-  max_epochs: 50
-
 checkpoint_config:
   monitor: val/acc
   mode: max
@@ -23,4 +20,4 @@ model_config:
     dropout: 0.3
   learning_rate: 0.0001
   momentum: 0.9
-  weight_decay: 0.0005
+  weight_decay: 0.0

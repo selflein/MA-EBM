@@ -1,6 +1,6 @@
 from itertools import islice
 from os import path
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 from collections import defaultdict
 
 import torch
@@ -30,7 +30,7 @@ class OODDetectionModel(pl.LightningModule):
         self.test_ood_dataloaders = []
 
     def eval_ood(
-        self, id_loader, ood_loaders: Dict[str, Any], num=10_000
+        self, id_loader, ood_loaders: List[Tuple[str, Any]], num=10_000
     ) -> Dict[str, float]:
         self.eval()
 

@@ -7,7 +7,7 @@ slurm:
 
 fixed:
   trainer_config:
-    max_epochs: 50
+    max_epochs: 100
 
   checkpoint_config:
     monitor: val/ood
