@@ -1,6 +1,8 @@
-import torch
+from copy import deepcopy
 
-from uncertainty_est.archs.arch_factory import get_arch
+import torch
+from torch import nn
+
 from uncertainty_est.models import CEBaseline
 
 
@@ -12,7 +14,7 @@ class DeepEnsemble(CEBaseline):
         learning_rate,
         momentum,
         weight_decay,
-        checkpoints,
+        num_models,
         **kwargs
     ):
         super().__init__(
@@ -21,24 +23,24 @@ class DeepEnsemble(CEBaseline):
         self.__dict__.update(locals())
         self.save_hyperparameters()
 
-        self.models = [self.backbone]
-        for ckpt in checkpoints:
-            backbone = get_arch(arch_name, arch_config)
-            # Remove the first module name in order to load backbone model
-            strip_sd = {
-                k.split(".", 1)[1]: v for k, v in torch.load(ckpt)["state_dict"].items()
-            }
-            backbone.load_state_dict(strip_sd)
-            self.models.append(backbone)
+        self.models = nn.ModuleList(
+            [deepcopy(self.backbone) for _ in range(num_models)]
+        )
 
     def forward(self, x):
-        return self.backbone(x)
+        samples = []
+        for model in self.models:
+            model.to(self.device)
+            samples.append(model(x).cpu())
+            model.cpu()
+
+        return torch.stack(samples, 1).var(1).mean(1)
 
     def training_step(self, batch, batch_idx):
-        raise ValueError("Training not implemented")
+        pass
 
     def configure_optimizers(self):
-        raise ValueError("Training not implemented")
+        pass
 
     def classify(self, x):
         samples = []
@@ -49,11 +51,5 @@ class DeepEnsemble(CEBaseline):
         return torch.stack(samples).mean(0)
 
     def get_ood_scores(self, x):
-        samples = []
-        for model in self.models:
-            model.to(self.device)
-            samples.append(model(x).cpu())
-            model.cpu()
-
-        variance = torch.stack(samples, 1).var(1).mean(1)
-        return {"Variance": -variance}
+        variance = self(x)
+        return {"Variance": variance}

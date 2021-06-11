@@ -50,7 +50,7 @@ MODELS = {
 }
 
 
-def load_model(model_folder: Path, last=False, *args, **kwargs):
+def resolve_model_checkpoint(model_folder: Path, last=False):
     ckpts = [file for file in model_folder.iterdir() if file.suffix == ".ckpt"]
     last_ckpt = [ckpt for ckpt in ckpts if ckpt.stem == "last"]
     best_ckpt = sorted([ckpt for ckpt in ckpts if ckpt.stem != "last"])
@@ -61,7 +61,11 @@ def load_model(model_folder: Path, last=False, *args, **kwargs):
         ckpts = last_ckpt + best_ckpt
     assert len(ckpts) > 0
 
-    checkpoint_path = ckpts[-1]
+    return ckpts[-1]
+
+
+def load_model(model_folder: Path, last=False, *args, **kwargs):
+    checkpoint_path = resolve_model_checkpoint(model_folder, last)
     return load_checkpoint(checkpoint_path, *args, **kwargs)
 
 
