@@ -21,9 +21,9 @@ model_name: VERAPosteriorNet
 model_config:
   arch_name: wrn
   arch_config:
-    depth: 4
+    depth: 16
     num_classes: ${fixed.num_classes}
-    widen_factor: 10
+    widen_factor: 8
     input_channels: ${fixed.data_shape.2}
     dropout: 0.3
     norm: group

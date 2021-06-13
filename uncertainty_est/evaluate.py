@@ -21,6 +21,7 @@ parser.add_argument("--checkpoint", type=str, action="append", default=[])
 parser.add_argument("--dataset", type=str)
 parser.add_argument("--ood_dataset", type=str, action="append")
 parser.add_argument("--eval-classification", action="store_true")
+parser.add_argument("--eval-ood-calibration", action="store_true")
 parser.add_argument("--output-folder", type=str)
 parser.add_argument("--name", type=str, required=True)
 parser.add_argument("--max-eval", type=int, default=10_000)
@@ -41,6 +42,7 @@ def eval_model(
     batch_size=128,
     max_items=-1,
     data_shape=None,
+    eval_ood_calibration=False,
     **kwargs,
 ):
     id_test_loader = get_dataloader(
@@ -71,6 +73,22 @@ def eval_model(
     for k, v in ood_results.items():
         logger.info(f"{k}: {v:.02f}")
         accum.append((model_name, model.__class__.__name__, dataset, *k, v))
+
+    if eval_ood_calibration:
+        ood_calib_results = model.eval_ood_calibration(test_ood_dataloaders)
+        for k, v in ood_calib_results.items():
+            logger.info(f"{k}: {v:.02f}")
+            accum.append(
+                (
+                    model_name,
+                    model.__class__.__name__,
+                    dataset,
+                    k,
+                    "OOD Calibration",
+                    "",
+                    v,
+                )
+            )
 
     return accum, clf_accum
 
@@ -104,6 +122,7 @@ if __name__ == "__main__":
             max_items=args.max_eval,
             normalize=config["normalize"] if "normalize" in config else True,
             data_shape=config["data_shape"],
+            eval_ood_calibration=args.eval_ood_calibration,
         )
         ood_tbl_rows.extend(ood_rows)
         clf_tbl_rows.append(clf_rows)
@@ -135,6 +154,7 @@ if __name__ == "__main__":
                 max_items=args.max_eval,
                 normalize=config["normalize"] if "normalize" in config else True,
                 data_shape=config["data_shape"],
+                eval_ood_calibration=args.eval_ood_calibration,
             )
 
             extra_cols = []

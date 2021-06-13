@@ -15,7 +15,7 @@ from uncertainty_eval.metrics.calibration_error import classification_calibratio
 from uncertainty_eval.vis import draw_reliability_graph, plot_score_hist
 
 from uncertainty_est.utils.utils import to_np
-from uncertainty_est.utils.metrics import accuracy
+from uncertainty_est.utils.metrics import accuracy, get_ood_calibration
 from uncertainty_est.data.dataloaders import get_dataloader
 
 
@@ -85,15 +85,37 @@ class OODDetectionModel(pl.LightningModule):
                     )
 
                     labels = np.concatenate([np.ones_like(ood), np.zeros_like(id_)])
-                    ood_metrics[(dataset_name, score_name, "AUROC")] = (
+                    ood_metrics[(dataset_name, score_name, "iAUROC")] = (
                         roc_auc_score(labels, -preds) * 100.0
                     )
-                    ood_metrics[(dataset_name, score_name, "AUPR")] = (
+                    ood_metrics[(dataset_name, score_name, "iAUPR")] = (
                         average_precision_score(labels, -preds) * 100.0
                     )
                 except Exception as e:
                     print(e)
         return ood_metrics
+
+    def eval_ood_calibration(self, ood_loaders: List[Tuple[str, Any]], num=10_000):
+        self.eval()
+
+        ood_calibration = {}
+        for dataset_name, loader in ood_loaders:
+            if num > 0:
+                max_batches = (num // loader.batch_size) + 1
+            else:
+                assert num == -1
+                max_batches = None
+
+            try:
+                _, preds = self.get_gt_preds(islice(loader, max_batches))
+                if not (preds.size(1) > 1):
+                    continue
+            except Exception as e:
+                print(e)
+                continue
+
+            ood_calibration[dataset_name] = get_ood_calibration(preds)
+        return ood_calibration
 
     def eval_classifier(self, loader, num=10_000):
         self.eval()
