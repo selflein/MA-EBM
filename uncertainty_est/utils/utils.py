@@ -78,12 +78,17 @@ def inverse_normalize(tensor, mean, std, inplace=False):
     return tensor
 
 
-def bold_maximum(to_bold, numeric_df=None):
+def bold_best(to_bold, numeric_df=None, order="max"):
     if numeric_df is None:
         numeric_df = to_bold
     for k in to_bold.columns:
         float_series = numeric_df[k].astype(float)
-        max = float_series == float_series.max()
+        if order == "max":
+            max = float_series == float_series.max()
+        elif order == "min":
+            max = float_series == float_series.min()
+        else:
+            raise ValueError("Ordering not supported.")
         max_idxs = max[max].index.values
         for max_idx in max_idxs:
             to_bold.loc[max_idx, k] = f"\\bfseries{{{to_bold.loc[max_idx, k]}}}"

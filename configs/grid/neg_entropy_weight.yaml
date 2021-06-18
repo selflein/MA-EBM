@@ -1,0 +1,7 @@
+# @package _group_
+
+model_config.w_neg_entropy_loss:
+  type: loguniform
+  min: 0.001
+  max: 100
+  num: 6

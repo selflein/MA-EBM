@@ -51,5 +51,16 @@ class DeepEnsemble(CEBaseline):
         return torch.stack(samples).mean(0)
 
     def get_ood_scores(self, x):
-        variance = self(x)
-        return {"Variance": variance}
+        samples = []
+        for model in self.models:
+            model.to(self.device)
+            samples.append(torch.softmax(model(x), 1).cpu())
+            model.cpu()
+        samples = torch.stack(samples, 1)
+
+        variance = samples.var(1).mean(1)
+
+        expected_dist = samples.mean(1)
+        entropy = -(expected_dist * torch.log(expected_dist)).sum(1)
+
+        return {"Variance": -variance, "Entropy": -entropy}

@@ -1,9 +1,5 @@
 # @package fixed
 
-trainer_config:
-  max_epochs: 50
-  terminate_on_nan: True
-
 checkpoint_config:
   monitor: val/acc
   mode: max

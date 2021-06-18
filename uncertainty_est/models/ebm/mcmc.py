@@ -92,7 +92,7 @@ class MCMC(OODDetectionModel):
                 y_q = torch.randint(0, self.n_classes, (self.sgld_batch_size,)).to(
                     self.device
                 )
-                x_q = self.sample_q(self.replay_buffer, y=y_q)
+                x_q = self.sample_q(self.replay_buffer, y=y_q, n_steps=self.sgld_steps)
             else:
                 x_q = self.sample_q(
                     self.replay_buffer, n_steps=self.sgld_steps
@@ -100,7 +100,7 @@ class MCMC(OODDetectionModel):
 
             fp = self.model(x_p_d)
             fq = self.model(x_q)
-            l_pxsgld = -(fp.mean() - fq.mean())  # + (fp ** 2).mean() + (fq ** 2).mean()
+            l_pxsgld = -(fp.mean() - fq.mean()) + (fp ** 2).mean() + (fq ** 2).mean()
             l_pxsgld *= self.pxsgld
 
         # log p(x|y) using sgld

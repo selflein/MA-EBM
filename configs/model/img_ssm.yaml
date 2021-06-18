@@ -1,8 +1,5 @@
 # @package fixed
 
-trainer_config:
-  max_epochs: 50
-
 earlystop_config:
 
 ood_dataset: ${fixed.dataset}

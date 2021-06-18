@@ -1,0 +1,29 @@
+# @package fixed
+
+checkpoint_config:
+  monitor: val_acc
+  mode: max
+
+earlystop_config:
+  monitor: val_acc
+  mode: max
+  patience: 10
+
+ood_dataset: uniform_noise
+
+model_name: PriorNet
+model_config:
+  arch_name: wrn
+  arch_config:
+    depth: 16
+    input_channels: ${fixed.data_shape.2}
+    num_classes: ${fixed.num_classes}
+    widen_factor: 8
+  learning_rate: 0.0001
+  momentum: 0.9
+  weight_decay: 0.0
+  target_concentration: 100.0
+  concentration: 1.0
+  gamma: 1.
+  reverse_kl: True
+  alpha_fix: True

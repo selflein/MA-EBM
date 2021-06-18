@@ -1,5 +1,9 @@
 # @package fixed
 
+trainer_config:
+  max_epochs: 100_000
+  max_steps: 100_000
+
 checkpoint_config:
   save_last: True
 
@@ -24,7 +28,7 @@ model_config:
   weight_decay: 0.0
   n_classes: ${fixed.num_classes}
   uncond: False
-  gen_learning_rate: 0.001
+  gen_learning_rate: 0.0002
   ebm_iters: 1
   generator_iters: 1
   entropy_weight: 1.0
@@ -40,15 +44,15 @@ model_config:
     bias: False
   generator_config:
     noise_dim: ${fixed.data_shape.0}
-    post_lr: 0.00003
+    post_lr: 0.0002
     init_post_logsigma: 0.1
 
   min_sigma: 0.01
   max_sigma: 0.3
-  p_control: 1.0
-  n_control: 1.0
+  p_control: 0.1
+  n_control: 0.1
   pg_control: 0.1
-  clf_ent_weight: 0.1
+  clf_ent_weight: 0.0
   ebm_type: jem
   clf_weight: 1.0
   warmup_steps: 2500
@@ -61,7 +65,6 @@ model_config:
   target_concentration:
   vis_every: 10
   entropy_reg: 0.0
-  is_toy_dataset: True
   reverse_kl: True
   w_neg_sample_loss: 0.0
   w_neg_entropy_loss: 0.0

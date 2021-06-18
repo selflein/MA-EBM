@@ -8,6 +8,7 @@ slurm:
 fixed:
   trainer_config:
     max_epochs: 100
+    terminate_on_nan: True
 
   checkpoint_config:
     monitor: val/ood

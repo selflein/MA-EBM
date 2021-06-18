@@ -37,7 +37,12 @@ class MCDropout(CEBaseline):
 
         samples = []
         for _ in range(self.num_samples):
-            samples.append(self(x).cpu())
+            samples.append(torch.softmax(self(x), 1).cpu())
+        samples = torch.stack(samples, 1)
 
-        variance = torch.stack(samples, 1).var(1).mean(1)
-        return {"Variance": -variance}
+        variance = samples.var(1).mean(1)
+
+        expected_dist = samples.mean(1)
+        entropy = -(expected_dist * torch.log(expected_dist)).sum(1)
+
+        return {"Variance": -variance, "Entropy": -entropy}
