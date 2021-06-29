@@ -115,3 +115,10 @@ class VERAPosteriorNet(VERA):
         )
         uncert = {**uncert, **dirichlet_uncerts}
         return uncert
+
+    def classify(self, x):
+        _, logits = self.model(x, return_logits=True)
+        alphas = torch.exp(logits)
+        if self.alpha_fix:
+            alphas += 1
+        return alphas / torch.sum(alphas, 0, keepdim=True)

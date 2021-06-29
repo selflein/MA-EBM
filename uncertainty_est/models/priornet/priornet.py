@@ -1,17 +1,18 @@
 import torch
-import pytorch_lightning as pl
 
+from uncertainty_est.utils.utils import to_np
 from uncertainty_est.archs.arch_factory import get_arch
 from uncertainty_est.models.priornet.uncertainties import (
     dirichlet_prior_network_uncertainty,
 )
+from uncertainty_est.models.ood_detection_model import OODDetectionModel
 from uncertainty_est.models.priornet.dpn_losses import (
     DirichletKLLoss,
     PriorNetMixedLoss,
 )
 
 
-class PriorNet(pl.LightningModule):
+class PriorNet(OODDetectionModel):
     def __init__(
         self,
         arch_name,
@@ -52,12 +53,16 @@ class PriorNet(pl.LightningModule):
         )
 
     def forward(self, x):
-        return self.backbone(x)
+        logits = to_np(self.backbone(x))
+        uncertanties = dirichlet_prior_network_uncertainty(
+            logits, alpha_correction=self.alpha_fix
+        )
+        return uncertanties["differential_entropy"]
 
     def training_step(self, batch, batch_idx):
         (x, y), (x_ood, _) = batch
 
-        y_hat = self(torch.cat((x, x_ood)))
+        y_hat = self.backbone(torch.cat((x, x_ood)))
         y_hat_ood = y_hat[len(x) :]
         y_hat = y_hat[: len(x)]
 
@@ -68,7 +73,7 @@ class PriorNet(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         (x, y), (x_ood, _) = batch
 
-        y_hat = self(torch.cat((x, x_ood)))
+        y_hat = self.backbone(torch.cat((x, x_ood)))
         y_hat_ood = y_hat[len(x) :]
         y_hat = y_hat[: len(x)]
 
@@ -81,7 +86,7 @@ class PriorNet(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
 
-        y_hat = self(x)
+        y_hat = self.backbone(x)
         acc = (y == y_hat.argmax(1)).float().mean(0).item()
         self.log("test_acc", acc)
 
@@ -96,10 +101,14 @@ class PriorNet(pl.LightningModule):
         return [optim], [scheduler]
 
     def classify(self, x):
-        return torch.softmax(self.backbone(x), -1)
+        logits = self.backbone(x)
+        alphas = torch.exp(logits)
+        if self.alpha_fix:
+            alphas += 1
+        return alphas / torch.sum(alphas, 0, keepdim=True)
 
     def get_ood_scores(self, x):
-        logits = self.backbone(x)
+        logits = to_np(self.backbone(x))
         uncertanties = dirichlet_prior_network_uncertainty(
             logits, alpha_correction=self.alpha_fix
         )
