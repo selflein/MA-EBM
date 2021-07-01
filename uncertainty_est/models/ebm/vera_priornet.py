@@ -127,4 +127,5 @@ class VERAPriorNet(VERA):
         alphas = torch.exp(logits)
         if self.alpha_fix:
             alphas += 1
-        return alphas / torch.sum(alphas, 0, keepdim=True)
+
+        return alphas / torch.sum(alphas, 1, keepdim=True)
