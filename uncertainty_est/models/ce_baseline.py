@@ -19,11 +19,11 @@ class CEBaseline(OODDetectionModel):
         self.backbone = get_arch(arch_name, arch_config)
 
     def forward(self, x):
-        return self.backbone(x)
+        return self.get_ood_scores(x)["p(x)"]
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        y_hat = self(x)
+        y_hat = self.backbone(x)
 
         loss = F.cross_entropy(y_hat, y)
         self.log("train/loss", loss)
@@ -31,7 +31,7 @@ class CEBaseline(OODDetectionModel):
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        y_hat = self(x)
+        y_hat = self.backbone(x)
 
         loss = F.cross_entropy(y_hat, y)
         self.log("val/loss", loss)
@@ -41,7 +41,7 @@ class CEBaseline(OODDetectionModel):
 
     def test_step(self, batch, batch_idx):
         x, y = batch
-        y_hat = self(x)
+        y_hat = self.backbone(x)
 
         acc = (y == y_hat.argmax(1)).float().mean(0).item()
         self.log("test/acc", acc)
@@ -60,7 +60,7 @@ class CEBaseline(OODDetectionModel):
         return torch.softmax(self.backbone(x), -1)
 
     def get_ood_scores(self, x):
-        logits = self(x).cpu()
+        logits = self.backbone(x).cpu()
         dir_uncert = dirichlet_prior_network_uncertainty(logits)
         dir_uncert["p(x)"] = logits.logsumexp(1)
         dir_uncert["max p(y|x)"] = logits.softmax(1).max(1)[0]
