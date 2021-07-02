@@ -68,22 +68,13 @@ class MCMC(OODDetectionModel):
 
     def training_step(self, batch, batch_idx):
         (x_lab, y_lab), (x_p_d, _) = batch
-        if self.n_classes > 1:
-            dist = smooth_one_hot(y_lab, self.n_classes, self.smoothing)
-        else:
-            dist = y_lab[None, :]
 
         l_pyxce, l_pxsgld, l_pxysgld = 0.0, 0.0, 0.0
         # log p(y|x) cross entropy loss
         if self.pyxce > 0:
-            logits = self.model.classify(x_lab)
-            l_pyxce = KHotCrossEntropyLoss()(logits, dist)
+            _, logits = self.model(x_lab, return_logits=True)
+            l_pyxce = self.classifier_loss(logits, y_lab, None)
             l_pyxce *= self.pyxce
-
-            l_pyxce += (
-                self.entropy_reg_weight
-                * -torch.distributions.Categorical(logits=logits).entropy().mean()
-            )
             self.log("train/clf_loss", l_pyxce)
 
         # log p(x) using sgld
@@ -114,6 +105,19 @@ class MCMC(OODDetectionModel):
         self.log("train/loss", loss)
         return loss
 
+    def classifier_loss(self, logits, y, g_logits):
+        if self.n_classes > 1:
+            dist = smooth_one_hot(y, self.n_classes, self.smoothing)
+        else:
+            dist = y[None, :]
+        l_pyxce = KHotCrossEntropyLoss()(logits, dist)
+
+        l_pyxce += (
+            self.entropy_reg_weight
+            * -torch.distributions.Categorical(logits=logits).entropy().mean()
+        )
+        return l_pyxce
+
     def validation_step(self, batch, batch_idx):
         (x_lab, y_lab), (_, _) = batch
 
@@ -123,6 +127,7 @@ class MCMC(OODDetectionModel):
         _, logits = self.model(x_lab, return_logits=True)
         acc = (y_lab == logits.argmax(1)).float().mean(0).item()
         self.log("val/acc", acc)
+        return logits
 
     def validation_epoch_end(self, outputs):
         if self.is_toy_dataset:

@@ -44,8 +44,6 @@ class VERAPriorNet(VERA):
         target_concentration=None,
         entropy_reg=0.0,
         reverse_kl=True,
-        w_neg_sample_loss=0.0,
-        w_neg_entropy_loss=0.0,
         **kwargs,
     ):
         super().__init__(

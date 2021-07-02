@@ -22,6 +22,7 @@ from .ebm.ssm import SSM
 from .autoencoder import Autoencoder
 from .mc_dropout import MCDropout
 from .deep_ensemble import DeepEnsemble
+from .ebm.mcmc_priornet import MCMCPriorNet
 
 
 MODELS = {
@@ -47,6 +48,7 @@ MODELS = {
     "Autoencoder": Autoencoder,
     "MCDropout": MCDropout,
     "DeepEnsemble": DeepEnsemble,
+    "MCMCPriorNet": MCMCPriorNet,
 }
 
 
