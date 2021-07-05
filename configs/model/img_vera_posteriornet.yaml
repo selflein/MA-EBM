@@ -28,7 +28,7 @@ model_config:
   beta1: 0.0
   beta2: 0.9
   weight_decay: 0.1
-  n_classes: 10
+  n_classes: ${fixed.num_classes}
   uncond: False
   gen_learning_rate: 0.00006
   ebm_iters: 1

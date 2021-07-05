@@ -63,5 +63,5 @@ class CEBaseline(OODDetectionModel):
         logits = self.backbone(x).cpu()
         dir_uncert = dirichlet_prior_network_uncertainty(logits)
         dir_uncert["p(x)"] = logits.logsumexp(1)
-        dir_uncert["max p(y|x)"] = logits.softmax(1).max(1)[0]
+        dir_uncert["max p(y|x)"] = logits.softmax(1).max(1).values
         return dir_uncert

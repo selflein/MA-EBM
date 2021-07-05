@@ -168,7 +168,7 @@ class EntropyMCMC(OODDetectionModel):
 
     def get_ood_scores(self, x):
         px, logits = self.model(x, return_logits=True)
-        return {"p(x)": px}
+        return {"p(x)": px, "max p(y|x)": torch.softmax(logits, -1).max(1).values}
 
     def sample_p_0(self, replay_buffer, bs, y=None):
         if len(replay_buffer) == 0:

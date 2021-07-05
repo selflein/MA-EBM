@@ -6,6 +6,8 @@ trainer_config:
   terminate_on_nan: True
 
 checkpoint_config:
+  monitor: val/acc
+  mode: max
   save_last: True
 
 earlystop_config:

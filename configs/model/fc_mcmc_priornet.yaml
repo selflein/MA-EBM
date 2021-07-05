@@ -5,6 +5,10 @@ trainer_config:
   max_steps: 10_000
 
 earlystop_config:
+
+checkpoint_config:
+  monitor: val/acc
+  mode: max
   save_last: True
 
 ood_dataset: ${fixed.dataset}

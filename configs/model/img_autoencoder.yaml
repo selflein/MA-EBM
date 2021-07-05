@@ -16,9 +16,9 @@ model_name: Autoencoder
 model_config:
   arch_name: wrn
   arch_config:
-    depth: 10
+    depth: 16
     num_classes: 32
-    widen_factor: 2
+    widen_factor: 8
     input_channels: ${fixed.data_shape.2}
   decoder_arch_name: resnetgenerator
   decoder_arch_config:

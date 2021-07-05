@@ -37,7 +37,7 @@ class MCDropout(CEBaseline):
 
         samples = []
         for _ in range(self.num_samples):
-            samples.append(torch.softmax(self(x), 1).cpu())
+            samples.append(torch.softmax(self.backbone(x), 1).cpu())
         samples = torch.stack(samples, 1)
 
         variance = samples.var(1).mean(1)

@@ -21,7 +21,7 @@ def run(cfg: DictConfig) -> None:
     print(f"Saving to collection: {collection}")
 
     run = subprocess.run(
-        f"seml {collection}  add {str(out_path)}", shell=True, capture_output=True
+        f"seml {collection} add {str(out_path)} -f", shell=True, capture_output=True
     )
     print(run.stdout.decode("UTF-8"))
     print(run.stderr.decode("UTF-8"))

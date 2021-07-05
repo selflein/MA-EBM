@@ -7,7 +7,8 @@ def accuracy(y: torch.Tensor, y_hat: torch.Tensor):
 
 def get_ood_calibration(preds, reduction="mean"):
     targets = torch.ones_like(preds) / preds.size(1)
-    ood_eces = (preds - targets).abs().max(1).values.numpy()
+    # Use KL divergence to the uniform distribution as measure
+    ood_eces = (targets * (targets.log() - (preds + 1e-8).log())).sum(-1).numpy()
     if reduction == "mean":
         return ood_eces.mean()
     else:
