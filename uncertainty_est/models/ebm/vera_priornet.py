@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 from torch.distributions import Dirichlet
 
 from uncertainty_est.models.ebm.vera import VERA
@@ -44,6 +45,7 @@ class VERAPriorNet(VERA):
         target_concentration=None,
         entropy_reg=0.0,
         reverse_kl=True,
+        temperature=1.0,
         **kwargs,
     ):
         super().__init__(
@@ -83,6 +85,7 @@ class VERAPriorNet(VERA):
         self.clf_loss = UnfixedDirichletKLLoss(
             concentration, target_concentration, entropy_reg, reverse_kl, alpha_fix
         )
+        self.temperature = temperature
 
     def classifier_loss(self, ld_logits, y_l, lg_logits):
         loss = self.clf_loss(ld_logits, y_l)
@@ -122,7 +125,9 @@ class VERAPriorNet(VERA):
 
     def classify(self, x):
         _, logits = self.model(x, return_logits=True)
+        logits /= self.temperature
         alphas = torch.exp(logits)
+
         if self.alpha_fix:
             alphas += 1
 

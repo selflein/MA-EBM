@@ -62,8 +62,10 @@ def run(
     mutation_rate=0.0,
     num_cat=1,
     normalize=True,
+    config_hash="",
     **kwargs,
 ):
+    print(config_hash)
     pl.seed_everything(seed)
     assert num_classes > 0
 

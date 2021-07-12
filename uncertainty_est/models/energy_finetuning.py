@@ -17,7 +17,6 @@ class EnergyFinetune(CEBaseline):
         m_in,
         m_out,
         checkpoint,
-        max_steps,
         **kwargs
     ):
         super().__init__(
@@ -30,6 +29,19 @@ class EnergyFinetune(CEBaseline):
     def forward(self, x):
         return self.backbone(x)
 
+    def finetune_loss(self, y_hat_ood, y_hat):
+        if self.score == "energy":
+            Ec_out = -torch.logsumexp(y_hat_ood, dim=1)
+            Ec_in = -torch.logsumexp(y_hat, dim=1)
+            loss = 0.1 * (
+                (F.relu(Ec_in - self.m_in) ** 2).mean()
+                + (F.relu(self.m_out - Ec_out) ** 2).mean()
+            )
+            self.log("train/margin_loss", loss, prog_bar=True)
+        elif self.score == "OE":
+            loss = 0.5 * -(y_hat_ood.mean(1) - torch.logsumexp(y_hat_ood, dim=1)).mean()
+        return loss
+
     def training_step(self, batch, batch_idx):
         (x, y), (x_ood, _) = batch
 
@@ -37,42 +49,31 @@ class EnergyFinetune(CEBaseline):
         y_hat_ood = y_hat[len(x) :]
         y_hat = y_hat[: len(x)]
         loss = F.cross_entropy(y_hat, y)
-        self.log("train_ce_loss", loss, prog_bar=True)
+        loss += self.finetune_loss(y_hat_ood, y_hat)
 
-        # cross-entropy from softmax distribution to uniform distribution
-        if self.score == "energy":
-            Ec_out = -torch.logsumexp(y_hat_ood, dim=1)
-            Ec_in = -torch.logsumexp(y_hat, dim=1)
-            margin_loss = 0.1 * (
-                (F.relu(Ec_in - self.m_in) ** 2).mean()
-                + (F.relu(self.m_out - Ec_out) ** 2).mean()
-            )
-            self.log("train_margin_loss", margin_loss, prog_bar=True)
-            loss += margin_loss
-        elif self.score == "OE":
-            loss += (
-                0.5 * -(y_hat_ood.mean(1) - torch.logsumexp(y_hat_ood, dim=1)).mean()
-            )
+        self.log("train/ce_loss", loss, prog_bar=True)
 
-        self.log("train_loss", loss)
+        self.log("train/loss", loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x, y = batch
+        (x, y), (x_ood, y_ood) = batch
         y_hat = self.backbone(x)
+        y_hat_ood = self.backbone(x_ood)
 
         loss = F.cross_entropy(y_hat, y)
+        loss += self.finetune_loss(y_hat_ood, y_hat)
         self.log("val/loss", loss)
 
         acc = (y == y_hat.argmax(1)).float().mean(0).item()
-        self.log("val_acc", acc)
+        self.log("val/acc", acc)
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.backbone(x)
 
         acc = (y == y_hat.argmax(1)).float().mean(0).item()
-        self.log("test_acc", acc)
+        self.log("test/acc", acc)
 
     def configure_optimizers(self):
         optim = torch.optim.AdamW(
@@ -91,16 +92,16 @@ class EnergyFinetune(CEBaseline):
             optim,
             lr_lambda=lambda step: cosine_annealing(
                 step,
-                self.max_steps,
+                self.trainer.max_epochs * len(self.train_dataloader.dataloader),
                 1,  # since lr_lambda computes multiplicative factor
                 1e-6 / self.learning_rate,
             ),
         )
         return [optim], [scheduler]
 
-    def ood_detect(self, loader):
-        _, logits = self.get_gt_preds(loader)
-
-        uncert = {}
-        uncert["Energy"] = torch.logsumexp(logits, 1)
-        return uncert
+    def get_ood_scores(self, x):
+        logits = self.backbone(x).cpu()
+        ood_scores = {}
+        ood_scores["p(x)"] = logits.logsumexp(1)
+        ood_scores["max p(y|x)"] = logits.softmax(1).max(1).values
+        return ood_scores

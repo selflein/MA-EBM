@@ -1,3 +1,4 @@
+from os import POSIX_FADV_SEQUENTIAL
 import yaml
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from .mc_dropout import MCDropout
 from .deep_ensemble import DeepEnsemble
 from .ebm.mcmc_priornet import MCMCPriorNet
 from .ebm.mcmc_entropy import EntropyMCMC
+from .postnet import PosteriorNetwork
 
 
 MODELS = {
@@ -51,6 +53,7 @@ MODELS = {
     "DeepEnsemble": DeepEnsemble,
     "MCMCPriorNet": MCMCPriorNet,
     "EntropyMCMC": EntropyMCMC,
+    "PostNet": PosteriorNetwork,
 }
 
 

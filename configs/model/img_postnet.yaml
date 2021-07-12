@@ -1,0 +1,28 @@
+# @package fixed
+
+checkpoint_config:
+  monitor: val/acc
+  mode: max
+
+earlystop_config:
+  monitor: val/acc
+  mode: max
+  patience: 10
+
+model_name: PostNet
+model_config:
+  arch_name: wrn
+  arch_config:
+    depth: 16
+    num_classes: ${fixed.model_config.latent_dim}
+    widen_factor: 8
+    input_channels: ${fixed.data_shape.2}
+  learning_rate: 0.0001
+  output_dim: ${fixed.num_classes}
+  latent_dim: 10
+  no_density: False
+  density_type: radial_flow
+  n_density: 8
+  budget_function: id
+  loss: UCE
+  regr: 1.0e-5
