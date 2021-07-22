@@ -38,3 +38,4 @@ model_config:
   warmup_steps: 2500
   entropy_reg_weight: 0.0
   lr_step_size: 1000
+  p_control: 0.0

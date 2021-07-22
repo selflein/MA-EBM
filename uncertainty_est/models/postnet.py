@@ -20,7 +20,7 @@ __budget_functions__ = {
     "id": lambda N: N,
     "id_normalized": lambda N: N / N.sum(),
     "exp": lambda N: torch.exp(N),
-    "parametrized": lambda N: torch.nn.Parameter(torch.ones_like(N).to(N.device)),
+    "parametrized": lambda N: torch.ones_like(N),
 }
 
 
@@ -39,10 +39,16 @@ class PosteriorNetwork(OODDetectionModel):
         budget_function="id",  # Budget function name applied on class count. name
         loss="UCE",  # Loss name. string
         regr=1e-5,
+        N=[
+            1,
+        ],
         **kwargs
     ):  # Regularization factor in Bayesian loss. float
         super().__init__(**kwargs)
         self.save_hyperparameters()
+
+        if not hasattr(self, "N"):
+            self.N = torch.tensor(N).to(self.device)
 
         # Architecture parameters
         self.output_dim, self.hidden_dims, self.latent_dim = (
@@ -118,12 +124,10 @@ class PosteriorNetwork(OODDetectionModel):
             for _, y in train_dataset:
                 class_counts[y] += 1
 
-            N = class_counts.to(self.device)
             if self.budget_function in __budget_functions__:
-                self.N, self.budget_function = (
-                    __budget_functions__[self.budget_function](N),
-                    self.budget_function,
-                )
+                self.N = nn.Parameter(
+                    __budget_functions__[self.budget_function](class_counts)
+                ).to(self.device)
             else:
                 raise NotImplementedError
 
@@ -215,5 +219,5 @@ class PosteriorNetwork(OODDetectionModel):
         soft_output_pred = F.normalize(alpha, p=1)
         return {
             "max p(y|x)": torch.max(soft_output_pred, -1).values,
-            "max alpha": torch.max(alpha, 1),
+            "sum alpha": torch.sum(alpha, 1),
         }

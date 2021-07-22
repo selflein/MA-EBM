@@ -80,6 +80,16 @@ def load_checkpoint(checkpoint_path: Path, *args, **kwargs):
     with (checkpoint_path.parent / "config.yaml").open("r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
+    try:
+        with (checkpoint_path.parent / "hparams.yaml").open("r") as f:
+            hparams = yaml.load(f, Loader=yaml.FullLoader)
+        if "checkpoint" in hparams:
+            hparams.pop("checkpoint")
+    except:
+        hparams = {}
+
+    kwargs = {**kwargs, **hparams}
+
     model = MODELS[config["model_name"]].load_from_checkpoint(
         checkpoint_path, *args, **kwargs
     )

@@ -4,6 +4,11 @@ trainer_config:
   max_steps: 10_000
   max_epochs: 10_000
 
+checkpoint_config:
+  monitor: val/acc
+  mode: max
+  save_last: True
+
 earlystop_config:
 
 ood_dataset: ${fixed.dataset}
@@ -50,7 +55,7 @@ model_config:
   pg_control: 0.1
   clf_ent_weight: 0.0
   ebm_type: jem
-  clf_weight: 1.0
+  clf_weight: 100.0
   warmup_steps: 2500
   no_g_batch_norm: False
   batch_size: ${fixed.batch_size}

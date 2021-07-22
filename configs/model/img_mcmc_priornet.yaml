@@ -26,7 +26,7 @@ model_config:
   smoothing: 0.0
   sgld_lr: 1.
   sgld_std: 0.01
-  sgld_steps: 100
+  sgld_steps: 30
   pyxce: 1.0
   pxsgld: 1.0
   pxysgld: 0.0
@@ -41,3 +41,4 @@ model_config:
   target_concentration:
   vis_every: 10
   reverse_kl: True
+  p_control: 1.0

@@ -1,0 +1,33 @@
+# @package _global_
+
+slurm:
+  experiments_per_job: 1
+  sbatch_options:
+    time: 0-10:00
+
+fixed:
+  dataset: mnist
+  num_classes: 10
+  batch_size: 64
+  data_shape: [32, 32, 1]
+
+  trainer_config:
+    max_epochs: 50
+
+  checkpoint_config:
+    monitor: val/ood
+    mode: max
+    save_last: True
+
+  test_ood_datasets:
+    - fashionmnist
+    - notmnist
+    - kmnist
+    - gaussian_noise
+    - uniform_noise
+    - constant
+    - kmnist_unscaled
+
+  model_config:
+    ood_val_datasets:
+      - kmnist

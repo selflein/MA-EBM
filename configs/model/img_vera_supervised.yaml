@@ -1,6 +1,9 @@
 # @package fixed
 
 checkpoint_config:
+  monitor: val/acc
+  mode: max
+  save_last: True
 
 earlystop_config:
 
@@ -46,4 +49,4 @@ model_config:
   no_g_batch_norm: False
   batch_size: ${fixed.batch_size}
   lr_decay: 0.3
-  lr_decay_epochs: [15, 18]
+  lr_decay_epochs: [40]

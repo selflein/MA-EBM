@@ -46,6 +46,9 @@ class MCMC(OODDetectionModel):
         self.__dict__.update(locals())
         self.save_hyperparameters()
 
+        if not hasattr(self, "p_control"):
+            self.p_control = 1.0
+
         if len(data_shape) == 3:
             self.sample_shape = [data_shape[-1], data_shape[0], data_shape[1]]
         else:
@@ -91,7 +94,8 @@ class MCMC(OODDetectionModel):
 
             fp = self.model(x_p_d)
             fq = self.model(x_q)
-            l_pxsgld = -(fp.mean() - fq.mean()) + (fp ** 2).mean() + (fq ** 2).mean()
+            l_pxsgld = -(fp.mean() - fq.mean())
+            l_pxsgld += self.p_control * ((fp ** 2).mean() + (fq ** 2).mean())
             l_pxsgld *= self.pxsgld
 
         # log p(x|y) using sgld
