@@ -8,6 +8,14 @@ import torch.nn.functional as F
 import torch.nn.init as init
 
 
+class NegativeLinear(nn.Linear):
+    def __init__(self, in_features: int, out_features: int, bias: bool) -> None:
+        super().__init__(in_features, out_features, bias=bias)
+
+    def forward(self, input):
+        return F.linear(input, -torch.exp(self.weight), self.bias)
+
+
 def conv3x3(in_planes, out_planes, stride=1):
     """
     Convolution with 3x3 kernels.
@@ -128,6 +136,7 @@ class WideResNet(nn.Module):
         strides=(1, 2, 2),
         bottleneck_dim=None,
         bottleneck_channels_factor=None,
+        negative_linear=False,
     ):
         super(WideResNet, self).__init__()
         self.leak = leak
@@ -157,7 +166,10 @@ class WideResNet(nn.Module):
         )
         self.bn1 = get_norm(nStages[3], self.norm)
         self.last_dim = nStages[3]
-        self.linear = nn.Linear(nStages[3], num_classes)
+        if negative_linear:
+            self.linear = NegativeLinear(nStages[3], num_classes)
+        else:
+            self.linear = nn.Linear(nStages[3], num_classes)
 
         if self.bottleneck_dim is not None:
             self.bottleneck = nn.Sequential(
