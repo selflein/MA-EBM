@@ -26,7 +26,7 @@ class WideBasic(nn.Module):
         out_c,
         stride,
         dropout_rate,
-        mod=True,
+        mod=False,
         batchnorm_momentum=0.01,
     ):
         super().__init__()
@@ -83,7 +83,7 @@ class WideResNet(nn.Module):
     def __init__(
         self,
         spectral_normalization=True,
-        mod=True,
+        mod=False,
         depth=28,
         widen_factor=10,
         num_classes=None,
@@ -92,6 +92,8 @@ class WideResNet(nn.Module):
         n_power_iterations=1,
         batchnorm_momentum=0.01,
         temp=1.0,
+        input_channels=3,
+        spatial_size=32,
         **kwargs
     ):
         """
@@ -117,12 +119,14 @@ class WideResNet(nn.Module):
             # NOTE: Google uses the spectral_norm_fc in all cases
             if kernel_size == 1:
                 # use spectral norm fc, because bound are tight for 1x1 convolutions
-                wrapped_conv = spectral_norm_fc(conv, coeff, n_power_iterations)
+                wrapped_conv = spectral_norm_fc(
+                    conv, coeff, n_power_iterations=n_power_iterations
+                )
             else:
                 # Otherwise use spectral norm conv, with loose bound
                 shapes = (in_c, input_size, input_size)
                 wrapped_conv = spectral_norm_conv(
-                    conv, coeff, shapes, n_power_iterations
+                    conv, coeff, shapes, n_power_iterations=n_power_iterations
                 )
 
             return wrapped_conv
@@ -134,9 +138,11 @@ class WideResNet(nn.Module):
 
         nStages = [16, 16 * k, 32 * k, 64 * k]
         strides = [1, 1, 2, 2]
-        input_sizes = 32 // np.cumprod(strides)
+        input_sizes = spatial_size // np.cumprod(strides)
 
-        self.conv1 = wrapped_conv(input_sizes[0], 3, nStages[0], 3, strides[0])
+        self.conv1 = wrapped_conv(
+            input_sizes[0], input_channels, nStages[0], 3, strides[0]
+        )
         self.layer1 = self._wide_layer(nStages[0:2], n, strides[1], input_sizes[0])
         self.layer2 = self._wide_layer(nStages[1:3], n, strides[2], input_sizes[1])
         self.layer3 = self._wide_layer(nStages[2:4], n, strides[3], input_sizes[2])
@@ -146,7 +152,11 @@ class WideResNet(nn.Module):
 
         self.num_classes = num_classes
         if num_classes is not None:
-            self.linear = nn.Linear(nStages[3], num_classes)
+            self.linear = spectral_norm_fc(
+                nn.Linear(nStages[3], num_classes),
+                coeff,
+                n_power_iterations=n_power_iterations,
+            )
 
         nonlinearity = "leaky_relu" if self.mod else "relu"
         for m in self.modules():
