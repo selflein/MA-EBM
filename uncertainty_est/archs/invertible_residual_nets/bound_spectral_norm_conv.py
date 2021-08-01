@@ -76,13 +76,17 @@ class SpectralNormConv(object):
 
         if do_power_iteration:
             with torch.no_grad():
+                output_padding = 0
+                if stride[0] > 1:
+                    # Note: the below does not generalize to stride > 2
+                    output_padding = 1 - self.input_dim[-1] % 2
                 for _ in range(self.n_power_iterations):
                     v_s = conv_transpose2d(
                         u.view(self.out_shape),
                         weight,
                         stride=stride,
                         padding=padding,
-                        output_padding=0,
+                        output_padding=output_padding,
                     )
                     # Note: out flag for in-place changes
                     v = normalize(v_s.view(-1), dim=0, eps=self.eps, out=v)
