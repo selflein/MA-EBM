@@ -2,6 +2,7 @@
 WideResnet architecture adapted from https://github.com/meliketoy/wide-resnet.pytorch
 """
 
+import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
@@ -167,7 +168,7 @@ class WideResNet(nn.Module):
         self.bn1 = get_norm(nStages[3], self.norm)
         self.last_dim = nStages[3]
         if negative_linear:
-            self.linear = NegativeLinear(nStages[3], num_classes)
+            self.linear = NegativeLinear(nStages[3], num_classes, bias=True)
         else:
             self.linear = nn.Linear(nStages[3], num_classes)
 
