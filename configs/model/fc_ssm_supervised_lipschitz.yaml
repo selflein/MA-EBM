@@ -15,11 +15,15 @@ ood_dataset: ${fixed.dataset}
 
 model_name: SSM
 model_config:
-  arch_name: fc
+  arch_name: lipschitz_fc
   arch_config:
     inp_dim: ${fixed.data_shape.0}
     num_classes: ${fixed.num_classes}
-    hidden_dims: [100, 100, 100, 100, 100]
+    hidden_dims: [100, 100, 100]
+    block_hidden_dims: [100, 100]
+    coeff: 3.
+    n_power_iterations: 1
+    activation: relu
 
   learning_rate: 0.001
   momentum: 0.9

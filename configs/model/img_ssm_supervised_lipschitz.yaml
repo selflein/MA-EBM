@@ -1,32 +1,29 @@
 # @package fixed
 
-trainer_config:
-  max_epochs: 10_000
-  max_steps: 10_000
-
 earlystop_config:
 
-checkpoint_config:
-  monitor: val/acc
-  mode: max
-  save_last: True
-
 ood_dataset: ${fixed.dataset}
+sigma: 0.1
 
 model_name: SSM
 model_config:
-  arch_name: fc
+  arch_name: lipschitz_wrn
   arch_config:
-    inp_dim: ${fixed.data_shape.0}
+    depth: 16
     num_classes: ${fixed.num_classes}
-    hidden_dims: [100, 100, 100, 100, 100]
+    widen_factor: 8
+    input_channels: ${fixed.data_shape.2}
+    spectral_normalization: true
+    coeff: 1.
+    n_power_iterations: 1
+    spatial_size: ${fixed.data_shape.0}
 
-  learning_rate: 0.001
+  learning_rate: 0.0001
   momentum: 0.9
   weight_decay: 0.0
   clf_weight: 1.0
   n_classes: ${fixed.num_classes}
-  noise_type: gaussian
   n_particles: 1
+  noise_type: gaussian
   warmup_steps: 2500
   lr_step_size: 1000

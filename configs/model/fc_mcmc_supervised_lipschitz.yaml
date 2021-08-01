@@ -1,0 +1,44 @@
+# @package fixed
+
+trainer_config:
+  max_epochs: 10_000
+  max_steps: 10_000
+
+earlystop_config:
+
+checkpoint_config:
+  save_last: True
+
+ood_dataset: ${fixed.dataset}
+
+model_name: JEM
+model_config:
+  arch_name: lipschitz_fc
+  arch_config:
+    inp_dim: ${fixed.data_shape.0}
+    num_classes: ${fixed.num_classes}
+    hidden_dims: [100, 100, 100]
+    block_hidden_dims: [100, 100]
+    coeff: 3.
+    n_power_iterations: 1
+    activation: relu
+
+  learning_rate: 0.001
+  momentum: 0.9
+  weight_decay: 0.0
+  smoothing: 0.0
+  sgld_lr: 1.0
+  sgld_std: 0.01
+  sgld_steps: 100
+  pyxce: 1.0
+  pxsgld: 1.0
+  pxysgld: 0.0
+  buffer_size: 9000
+  reinit_freq: 0.05
+  data_shape: ${fixed.data_shape}
+  sgld_batch_size: ${fixed.batch_size}
+  class_cond_p_x_sample: True
+  n_classes: ${fixed.num_classes}
+  warmup_steps: 2500
+  entropy_reg_weight: 0.0
+  lr_step_size: 1000
