@@ -69,11 +69,11 @@ def split_leading_dim(x, shape):
 
 
 def inverse_normalize(tensor, mean, std, inplace=False):
+    if not inplace:
+        tensor = tensor.clone()
+
     for t, m, s in zip(tensor, mean, std):
-        if inplace:
-            t.mul_(s).add_(m)
-        else:
-            tensor = tensor.mul(s).add(m)
+        t.mul_(s).add_(m)
 
     return tensor
 
@@ -81,11 +81,17 @@ def inverse_normalize(tensor, mean, std, inplace=False):
 def bold_best(to_bold, numeric_df=None, order="max"):
     if numeric_df is None:
         numeric_df = to_bold
-    for k in to_bold.columns:
+
+    if isinstance(order, str):
+        order = [
+            order,
+        ] * len(to_bold.columns)
+
+    for k, col_order in zip(to_bold.columns, order):
         float_series = numeric_df[k].astype(float)
-        if order == "max":
+        if col_order == "max":
             max = float_series == float_series.max()
-        elif order == "min":
+        elif col_order == "min":
             max = float_series == float_series.min()
         else:
             raise ValueError("Ordering not supported.")

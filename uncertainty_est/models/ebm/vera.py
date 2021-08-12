@@ -44,6 +44,7 @@ class VERA(OODDetectionModel):
         batch_size,
         lr_decay,
         lr_decay_epochs,
+        px_weight=1.0,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -148,6 +149,7 @@ class VERA(OODDetectionModel):
                 .norm(2, 1)
             )
             e_loss += self.pg_control * (grad_ld ** 2.0 / 2.0).mean()
+        e_loss *= self.px_weight
 
         self.log("train/e_loss", e_loss.item())
 

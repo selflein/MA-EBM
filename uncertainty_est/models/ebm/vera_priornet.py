@@ -89,6 +89,16 @@ class VERAPriorNet(VERA):
         )
         self.temperature = temperature
 
+    def forward(self, x):
+        if self.predict_mode == "density":
+            return self.model(x)
+        elif self.predict_mode in ("logits", "probs"):
+            _, logits = self.model(x, return_logits=True)
+            if self.predict_mode == "logits":
+                return logits
+            else:
+                return torch.softmax(logits, -1)
+
     def classifier_loss(self, ld_logits, y_l, lg_logits):
         loss = self.clf_loss(ld_logits, y_l)
         self.log("train/clf_loss", loss)

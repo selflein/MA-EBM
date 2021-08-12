@@ -27,7 +27,7 @@ class EnergyFinetune(CEBaseline):
         self.load_state_dict(torch.load(checkpoint)["state_dict"])
 
     def forward(self, x):
-        return self.backbone(x)
+        return self.backbone(x).logsumexp(1)
 
     def finetune_loss(self, y_hat_ood, y_hat):
         if self.score == "energy":

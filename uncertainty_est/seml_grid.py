@@ -9,7 +9,7 @@ from omegaconf import DictConfig, OmegaConf
 @hydra.main(config_path="../configs", config_name="config")
 def run(cfg: DictConfig) -> None:
     out_path = Path("./temp") / f"{uuid.uuid4()}.yaml"
-    print(OmegaConf.to_yaml(cfg))
+    print(OmegaConf.to_yaml(cfg, resolve=True))
 
     with out_path.open("w") as f:
         f.writelines(OmegaConf.to_yaml(cfg, resolve=True))
