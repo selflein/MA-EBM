@@ -1,16 +1,15 @@
 # @package fixed
 
-earlystop_config:
-
 checkpoint_config:
   monitor: val/acc
   mode: max
-  save_last: True
 
-ood_dataset: ${fixed.dataset}
-sigma: 0.1
+earlystop_config:
+  monitor: val/acc
+  mode: max
+  patience: 10
 
-model_name: SSM
+model_name: CEBaseline
 model_config:
   arch_name: lipschitz_wrn
   arch_config:
@@ -23,13 +22,6 @@ model_config:
     n_power_iterations: 1
     spatial_size: ${fixed.data_shape.0}
     negtive_linear: True
-
   learning_rate: 0.0001
   momentum: 0.9
   weight_decay: 0.0
-  clf_weight: 1.0
-  n_classes: ${fixed.num_classes}
-  n_particles: 1
-  noise_type: gaussian
-  warmup_steps: 2500
-  lr_step_size: 1000

@@ -9,6 +9,7 @@ import math
 import torch.nn as nn
 import torch.nn.functional as F
 
+from uncertainty_est.archs.fc import NegativeLinear
 from uncertainty_est.archs.invertible_residual_nets.bound_spectral_norm_conv import (
     spectral_norm_conv,
 )
@@ -94,6 +95,7 @@ class WideResNet(nn.Module):
         temp=1.0,
         input_channels=3,
         spatial_size=32,
+        negative_linear=False,
         **kwargs
     ):
         """
@@ -148,15 +150,26 @@ class WideResNet(nn.Module):
         self.layer3 = self._wide_layer(nStages[2:4], n, strides[3], input_sizes[2])
 
         self.bn1 = nn.BatchNorm2d(nStages[3], momentum=batchnorm_momentum)
-        self.activation = F.leaky_relu if self.mod else F.relu
+
+        if negative_linear:
+            self.activation = F.relu
+        else:
+            self.activation = F.leaky_relu if self.mod else F.relu
 
         self.num_classes = num_classes
         if num_classes is not None:
-            self.linear = spectral_norm_fc(
-                nn.Linear(nStages[3], num_classes),
-                coeff,
-                n_power_iterations=n_power_iterations,
-            )
+            if negative_linear:
+                self.linear = spectral_norm_fc(
+                    NegativeLinear(nStages[3], num_classes, True),
+                    coeff,
+                    n_power_iterations=n_power_iterations,
+                )
+            else:
+                self.linear = spectral_norm_fc(
+                    nn.Linear(nStages[3], num_classes),
+                    coeff,
+                    n_power_iterations=n_power_iterations,
+                )
 
         nonlinearity = "leaky_relu" if self.mod else "relu"
         for m in self.modules():

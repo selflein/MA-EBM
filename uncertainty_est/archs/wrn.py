@@ -8,13 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
-
-class NegativeLinear(nn.Linear):
-    def __init__(self, in_features: int, out_features: int, bias: bool) -> None:
-        super().__init__(in_features, out_features, bias=bias)
-
-    def forward(self, input):
-        return F.linear(input, -torch.exp(self.weight), self.bias)
+from uncertainty_est.archs.fc import NegativeLinear
 
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -144,7 +138,6 @@ class WideResNet(nn.Module):
         self.in_planes = 16
         self.sum_pool = sum_pool
         self.norm = norm
-        self.lrelu = nn.LeakyReLU(leak)
         self.bottleneck_dim = bottleneck_dim
         self.bottleneck_channels_factor = bottleneck_channels_factor
 
@@ -167,10 +160,13 @@ class WideResNet(nn.Module):
         )
         self.bn1 = get_norm(nStages[3], self.norm)
         self.last_dim = nStages[3]
+
         if negative_linear:
             self.linear = NegativeLinear(nStages[3], num_classes, bias=True)
+            self.activation = F.relu
         else:
             self.linear = nn.Linear(nStages[3], num_classes)
+            self.activation = nn.LeakyReLU(leak)
 
         if self.bottleneck_dim is not None:
             self.bottleneck = nn.Sequential(
@@ -223,7 +219,7 @@ class WideResNet(nn.Module):
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
-        out = self.lrelu(self.bn1(out))
+        out = self.activation(self.bn1(out))
         if self.sum_pool:
             out = out.view(out.size(0), out.size(1), -1).sum(2)
         else:

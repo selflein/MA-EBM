@@ -1,8 +1,18 @@
+import torch
 from torch import nn
+import torch.nn.functional as F
 
 from uncertainty_est.archs.invertible_residual_nets.bound_spectral_norm import (
     spectral_norm_fc,
 )
+
+
+class NegativeLinear(nn.Linear):
+    def __init__(self, in_features: int, out_features: int, bias: bool) -> None:
+        super().__init__(in_features, out_features, bias=bias)
+
+    def forward(self, input):
+        return F.linear(input, -torch.exp(self.weight), self.bias)
 
 
 def make_mlp(
@@ -13,6 +23,7 @@ def make_mlp(
     bias=True,
     slope=1e-2,
     spectral_norm_kwargs=None,
+    neg_linear=False,
 ):
     layers = []
     if len(dim_list) > 2:
@@ -40,14 +51,16 @@ def make_mlp(
 
             if dropout > 0:
                 layers.append(nn.Dropout(p=dropout))
-    if spectral_norm_kwargs is not None:
-        layers.append(
-            spectral_norm_fc(
-                nn.Linear(dim_list[-2], dim_list[-1], bias=bias), **spectral_norm_kwargs
-            )
-        )
+
+    if neg_linear:
+        last_linear = NegativeLinear(dim_list[-2], dim_list[-1], bias=bias)
     else:
-        layers.append(nn.Linear(dim_list[-2], dim_list[-1], bias=bias))
+        last_linear = nn.Linear(dim_list[-2], dim_list[-1], bias=bias)
+
+    if spectral_norm_kwargs is not None:
+        layers.append(spectral_norm_fc(last_linear, **spectral_norm_kwargs))
+    else:
+        layers.append(last_linear)
     model = nn.Sequential(*layers)
     return model
 
@@ -64,6 +77,7 @@ class SynthModel(nn.Module):
         activation="leaky_relu",
         batch_norm=False,
         dropout=0.0,
+        neg_linear=False,
         **kwargs,
     ):
         super().__init__()
@@ -78,6 +92,7 @@ class SynthModel(nn.Module):
             activation=activation,
             batch_norm=batch_norm,
             dropout=dropout,
+            neg_linear=neg_linear,
             **kwargs,
         )
 
