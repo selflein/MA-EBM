@@ -20,7 +20,7 @@ fixed:
   trainer_config:
     gpus: 1
     benchmark: True
-  log_dir: ./thesis_logs
+  log_dir: .
   output_folder:
   ood_dataset:
 
