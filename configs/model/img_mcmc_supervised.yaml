@@ -1,7 +1,5 @@
 # @package fixed
 
-checkpoint_config:
-
 earlystop_config:
 
 ood_dataset: ${fixed.dataset}
