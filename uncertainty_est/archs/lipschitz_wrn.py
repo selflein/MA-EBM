@@ -159,11 +159,7 @@ class WideResNet(nn.Module):
         self.num_classes = num_classes
         if num_classes is not None:
             if negative_linear:
-                self.linear = spectral_norm_fc(
-                    NegativeLinear(nStages[3], num_classes, True),
-                    coeff,
-                    n_power_iterations=n_power_iterations,
-                )
+                self.linear = NegativeLinear(nStages[3], num_classes, True)
             else:
                 self.linear = spectral_norm_fc(
                     nn.Linear(nStages[3], num_classes),

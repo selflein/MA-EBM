@@ -22,7 +22,7 @@ model_config:
     coeff: 1.
     n_power_iterations: 1
     spatial_size: ${fixed.data_shape.0}
-    negtive_linear: True
+    negative_linear: True
 
   learning_rate: 0.0001
   momentum: 0.9
