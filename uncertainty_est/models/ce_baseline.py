@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 import torch.nn.functional as F
 
 from uncertainty_est.archs.arch_factory import get_arch
@@ -65,3 +66,21 @@ class CEBaseline(OODDetectionModel):
         dir_uncert["p(x)"] = logits.logsumexp(1)
         dir_uncert["max p(y|x)"] = logits.softmax(1).max(1).values
         return dir_uncert
+
+    def validation_epoch_end(self, outputs):
+        if hasattr(self, "ood_val_loaders"):
+            avg_densities = {}
+            for ds_name, loader in self.ood_val_loaders + [
+                ("ID", self.val_dataloader.dataloader)
+            ]:
+                pxs = []
+                for x, _ in loader:
+                    pxs.append(
+                        self.backbone(x.to(self.device)).logsumexp(-1).detach().cpu()
+                    )
+                avg_densities[ds_name] = torch.cat(pxs).mean().item()
+            self.logger.experiment.add_scalars(
+                "val/avg_densities", avg_densities, self.trainer.global_step
+            )
+
+        super().validation_epoch_end(outputs)
