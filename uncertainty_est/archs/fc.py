@@ -15,6 +15,22 @@ class NegativeLinear(nn.Linear):
         return F.linear(input, -torch.exp(self.weight), self.bias)
 
 
+class RBF(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, inp):
+        return torch.exp(-torch.pow(inp, 2))
+
+
+class MReLU(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, inp):
+        return torch.min(F.relu(1 - inp), F.relu(1 + inp))
+
+
 def make_mlp(
     dim_list,
     activation="relu",
@@ -42,6 +58,12 @@ def make_mlp(
 
             if activation == "relu":
                 layers.append(nn.ReLU())
+            elif activation == "tanh":
+                layers.append(nn.Tanh())
+            elif activation == "rbf":
+                layers.append(RBF())
+            elif activation == "mrelu":
+                layers.append(MReLU())
             elif activation == "leaky_relu":
                 layers.append(nn.LeakyReLU(slope, inplace=True))
             elif activation == "elu":
