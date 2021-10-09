@@ -31,6 +31,23 @@ class MReLU(nn.Module):
         return torch.min(F.relu(1 - inp), F.relu(1 + inp))
 
 
+def get_activation(activation, slope=1e-2):
+    if activation == "relu":
+        return nn.ReLU(inplace=True)
+    elif activation == "tanh":
+        return nn.Tanh()
+    elif activation == "rbf":
+        return RBF()
+    elif activation == "mrelu":
+        return MReLU()
+    elif activation == "leaky_relu":
+        return nn.LeakyReLU(negative_slope=slope, inplace=True)
+    elif activation == "elu":
+        return nn.ELU(inplace=True)
+    else:
+        raise NotImplementedError(f"Activation '{activation}' not implemented!")
+
+
 def make_mlp(
     dim_list,
     activation="relu",
@@ -56,20 +73,7 @@ def make_mlp(
             if batch_norm:
                 layers.append(nn.BatchNorm1d(dim_out, affine=True))
 
-            if activation == "relu":
-                layers.append(nn.ReLU())
-            elif activation == "tanh":
-                layers.append(nn.Tanh())
-            elif activation == "rbf":
-                layers.append(RBF())
-            elif activation == "mrelu":
-                layers.append(MReLU())
-            elif activation == "leaky_relu":
-                layers.append(nn.LeakyReLU(slope, inplace=True))
-            elif activation == "elu":
-                layers.append(nn.ELU(inplace=True))
-            else:
-                raise NotImplementedError(f"Activation '{activation}' not implemented!")
+            layers.append(get_activation(activation, slope))
 
             if dropout > 0:
                 layers.append(nn.Dropout(p=dropout))

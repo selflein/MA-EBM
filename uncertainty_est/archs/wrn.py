@@ -7,8 +7,9 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
+from torch.nn.modules import activation
 
-from uncertainty_est.archs.fc import NegativeLinear
+from uncertainty_est.archs.fc import NegativeLinear, get_activation
 
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -62,9 +63,10 @@ class wide_basic(nn.Module):
         norm=None,
         leak=0.2,
         first=False,
+        activation="leaky_relu",
     ):
         super(wide_basic, self).__init__()
-        self.lrelu = nn.LeakyReLU(leak)
+        self.lrelu = get_activation(activation, leak)
         self.bn1 = get_norm(in_planes, norm)
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, padding=1, bias=True)
         self.dropout = Identity() if dropout_rate == 0.0 else nn.Dropout(p=dropout_rate)
@@ -130,6 +132,7 @@ class WideResNet(nn.Module):
         dropout=0.0,
         strides=(1, 2, 2),
         bottleneck_dim=None,
+        activation="leaky_relu",
         bottleneck_channels_factor=None,
         negative_linear=False,
     ):
@@ -140,6 +143,7 @@ class WideResNet(nn.Module):
         self.norm = norm
         self.bottleneck_dim = bottleneck_dim
         self.bottleneck_channels_factor = bottleneck_channels_factor
+        self.activation = activation
 
         assert (depth - 4) % 6 == 0, "Wide-resnet depth should be 6n+4"
         n = (depth - 4) // 6
@@ -162,11 +166,15 @@ class WideResNet(nn.Module):
         self.last_dim = nStages[3]
 
         if negative_linear:
+            if activation not in ("relu", "leaky_relu", "mrelu"):
+                print(
+                    "Using negative parameterization however it does not yield any guarantuees."
+                )
             self.linear = NegativeLinear(nStages[3], num_classes, bias=True)
-            self.activation = F.relu
+            self.final_activation = F.relu
         else:
             self.linear = nn.Linear(nStages[3], num_classes)
-            self.activation = nn.LeakyReLU(leak)
+            self.final_activation = get_activation(self.activation, self.leak)
 
         if self.bottleneck_dim is not None:
             self.bottleneck = nn.Sequential(
@@ -195,11 +203,19 @@ class WideResNet(nn.Module):
                         stride,
                         norm=self.norm,
                         first=True,
+                        activation=self.activation,
                     )
                 )
             else:
                 layers.append(
-                    block(self.in_planes, planes, dropout_rate, stride, norm=self.norm)
+                    block(
+                        self.in_planes,
+                        planes,
+                        dropout_rate,
+                        stride,
+                        norm=self.norm,
+                        activation=self.activation,
+                    )
                 )
             self.in_planes = planes
 
@@ -219,7 +235,7 @@ class WideResNet(nn.Module):
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
-        out = self.activation(self.bn1(out))
+        out = self.final_activation(self.bn1(out))
         if self.sum_pool:
             out = out.view(out.size(0), out.size(1), -1).sum(2)
         else:
