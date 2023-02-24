@@ -1,7 +1,7 @@
 # Out-of-distribution Detection with Energy-based Models
 
 This repository contains the code for my Master Thesis
-> [Out-of-distribution Detection with Energy-based Models]() \
+> [Out-of-distribution Detection with Energy-based Models](http://arxiv.org/abs/2302.12002) \
 Sven Elflein \
 Advisors: Bertrand Charpentier, Daniel Zügner \
 Supervisor: Stephan Günnemann
